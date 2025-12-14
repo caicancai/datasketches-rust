@@ -15,17 +15,15 @@
 // specific language governing permissions and limitations
 // under the License.
 
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+//! # Apache® DataSketches™ Core Rust Library Component
+//!
+//! The Sketching Core Library provides a range of stochastic streaming algorithms and closely
+//! related Rust technologies that are particularly useful when integrating this technology into
+//! systems that must deal with massive data.
+//!
+//! This library is divided into modules that constitute distinct groups of functionality.
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#![deny(missing_docs)]
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub mod error;
+pub mod hll;
