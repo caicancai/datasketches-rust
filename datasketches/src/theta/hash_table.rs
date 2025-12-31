@@ -17,6 +17,7 @@
 
 use std::hash::Hash;
 
+use crate::ResizeFactor;
 use crate::hash::MurmurHash3X64128;
 
 /// Maximum theta value (signed max for compatibility with Java)
@@ -30,28 +31,6 @@ pub const MAX_LG_K: u8 = 26;
 
 /// Default log2 of K
 pub const DEFAULT_LG_K: u8 = 12;
-
-/// Hash table resize factor
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum ResizeFactor {
-    /// Resize by factor of 2
-    X2 = 2,
-    /// Resize by factor of 4
-    X4 = 4,
-    /// Resize by factor of 8
-    #[default]
-    X8 = 8,
-}
-
-impl ResizeFactor {
-    pub fn lg_value(&self) -> u8 {
-        match self {
-            ResizeFactor::X2 => 1,
-            ResizeFactor::X4 => 2,
-            ResizeFactor::X8 => 3,
-        }
-    }
-}
 
 /// Resize threshold (0.5 = 50% load factor)
 const RESIZE_THRESHOLD: f64 = 0.5;
@@ -329,12 +308,10 @@ impl ThetaHashTable {
 fn starting_sub_multiple(lg_target: u8, lg_min: u8, lg_resize_factor: u8) -> u8 {
     if lg_target <= lg_min {
         lg_min
+    } else if lg_resize_factor == 0 {
+        lg_target
     } else {
-        if lg_resize_factor == 0 {
-            lg_target
-        } else {
-            ((lg_target - lg_min) % lg_resize_factor) + lg_min
-        }
+        ((lg_target - lg_min) % lg_resize_factor) + lg_min
     }
 }
 
@@ -423,6 +400,17 @@ mod tests {
 
     #[test]
     fn test_resize() {
+        fn populate_values(table: &mut ThetaHashTable, count: usize) -> usize {
+            let mut inserted = 0;
+            for i in 0..count {
+                let hash = table.hash_and_screen(format!("value_{}", i));
+                if hash != 0 && table.try_insert(hash) {
+                    inserted += 1;
+                }
+            }
+            inserted
+        }
+
         {
             let mut table = ThetaHashTable::new(8, ResizeFactor::X2, 1.0, DEFAULT_UPDATE_SEED);
 
@@ -430,13 +418,7 @@ mod tests {
 
             // Insert enough values to trigger resize (50% threshold)
             // Capacity = 32 * 0.5 = 16
-            let mut inserted = 0;
-            for i in 0..20 {
-                let hash = table.hash_and_screen(format!("value_{}", i));
-                if hash != 0 && table.try_insert(hash) {
-                    inserted += 1;
-                }
-            }
+            let inserted = populate_values(&mut table, 20);
 
             // Table should have resized and all values should be inserted
             assert!(table.num_entries() > 0);
@@ -452,13 +434,7 @@ mod tests {
 
             // Insert enough values to trigger resize (50% threshold)
             // Capacity = 32 * 0.5 = 16
-            let mut inserted = 0;
-            for i in 0..20 {
-                let hash = table.hash_and_screen(format!("value_{}", i));
-                if hash != 0 && table.try_insert(hash) {
-                    inserted += 1;
-                }
-            }
+            let inserted = populate_values(&mut table, 20);
 
             // Table should have resized and all values should be inserted
             assert!(table.num_entries() > 0);

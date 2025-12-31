@@ -33,3 +33,4 @@ mod hash_table;
 mod sketch;
 
 pub use self::sketch::ThetaSketch;
+pub use self::sketch::ThetaSketchBuilder;

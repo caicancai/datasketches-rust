@@ -50,7 +50,7 @@ pub const STREAM_WEIGHT_LONG: usize = 16;
 /// Offset of offset (fourth pre-long).
 pub const OFFSET_LONG: usize = 24;
 
-/// Read a u32 value from bytes at the given offset (little-endian).
+/// Read an u32 value from bytes at the given offset (little-endian).
 #[inline]
 pub fn read_u32_le(bytes: &[u8], offset: usize) -> u32 {
     u32::from_le_bytes([
@@ -76,14 +76,29 @@ pub fn read_i64_le(bytes: &[u8], offset: usize) -> i64 {
     ])
 }
 
+/// Read an u64 value from bytes at the given offset (little-endian).
+#[inline]
+pub fn read_u64_le(bytes: &[u8], offset: usize) -> u64 {
+    u64::from_le_bytes([
+        bytes[offset],
+        bytes[offset + 1],
+        bytes[offset + 2],
+        bytes[offset + 3],
+        bytes[offset + 4],
+        bytes[offset + 5],
+        bytes[offset + 6],
+        bytes[offset + 7],
+    ])
+}
+
 /// Write a u32 value to bytes at the given offset (little-endian).
 #[inline]
 pub fn write_u32_le(bytes: &mut [u8], offset: usize, value: u32) {
     bytes[offset..offset + 4].copy_from_slice(&value.to_le_bytes());
 }
 
-/// Write an i64 value to bytes at the given offset (little-endian).
+/// Write an u64 value to bytes at the given offset (little-endian).
 #[inline]
-pub fn write_i64_le(bytes: &mut [u8], offset: usize, value: i64) {
+pub fn write_u64_le(bytes: &mut [u8], offset: usize, value: u64) {
     bytes[offset..offset + 8].copy_from_slice(&value.to_le_bytes());
 }
